@@ -1,0 +1,147 @@
+[
+  {
+    "model": "doubao-seed-2.0-pro",
+    "siteId": "yi",
+    "siteName": "api.bywlai.cn",
+    "apiType": "openai",
+    "support": true,
+    "timestamp": "2026-03-09T11:09:18.572Z"
+  },
+  {
+    "model": "gpt-5.4",
+    "siteId": "yi",
+    "siteName": "api.bywlai.cn",
+    "apiType": "openai",
+    "support": true,
+    "timestamp": "2026-03-09T11:08:08.786Z"
+  },
+  {
+    "model": "moonshotai/kimi-k2.5",
+    "siteId": "custom_1772814447134",
+    "siteName": "api.bywlai.cn-2",
+    "apiType": "anthropic",
+    "support": true,
+    "timestamp": "2026-03-06T16:28:39.621Z"
+  },
+  {
+    "model": "doubao-seed-2.0-pro",
+    "siteId": "custom_1772814447134",
+    "siteName": "api.bywlai.cn-2",
+    "apiType": "anthropic",
+    "support": true,
+    "timestamp": "2026-03-06T16:28:34.047Z"
+  },
+  {
+    "model": "GLM-5",
+    "siteId": "custom_1772814447134",
+    "siteName": "api.bywlai.cn-2",
+    "apiType": "anthropic",
+    "support": true,
+    "timestamp": "2026-03-06T16:27:45.800Z"
+  },
+  {
+    "model": "gpt-5-codex",
+    "siteId": "yi",
+    "siteName": "api.bywlai.cn",
+    "apiType": "openai",
+    "support": true,
+    "timestamp": "2026-03-06T15:20:26.678Z"
+  },
+  {
+    "model": "claude-opus-4-6-thinking-count",
+    "siteId": "yi",
+    "siteName": "api.bywlai.cn",
+    "apiType": "anthropic",
+    "support": true,
+    "timestamp": "2026-03-06T15:13:04.146Z"
+  },
+  {
+    "model": "claude-sonnet-4.5-count",
+    "siteId": "yi",
+    "siteName": "api.bywlai.cn",
+    "apiType": "openai",
+    "support": true,
+    "timestamp": "2026-03-06T15:10:38.074Z"
+  },
+  {
+    "model": "GLM-5",
+    "site": "yi",
+    "apiType": "openai",
+    "support": false,
+    "error": "模型未找到",
+    "timestamp": "2026-03-06T14:20:05.827Z"
+  },
+  {
+    "model": "gpt-5.2",
+    "site": "xqtd520qidong",
+    "support": true,
+    "timestamp": "2026-03-03T12:45:26.212Z"
+  },
+  {
+    "model": "minimax-m2.5",
+    "site": "xqtd520qidong",
+    "support": true,
+    "timestamp": "2026-03-03T12:43:54.713Z"
+  },
+  {
+    "model": "deepseek-v3.2",
+    "site": "yi",
+    "support": true,
+    "timestamp": "2026-03-03T12:41:31.063Z"
+  },
+  {
+    "model": "claude-opus-4-6-thinking-count",
+    "site": "yi",
+    "support": true,
+    "timestamp": "2026-03-03T12:40:17.503Z"
+  },
+  {
+    "model": "glm-4.7",
+    "site": "yi",
+    "support": true,
+    "timestamp": "2026-03-03T12:33:32.732Z"
+  },
+  {
+    "model": "qwen3-coder-next",
+    "site": "yi",
+    "support": true,
+    "timestamp": "2026-03-03T12:33:20.579Z"
+  },
+  {
+    "model": "claude-opus-4-6",
+    "site": "yi",
+    "support": true,
+    "timestamp": "2026-03-03T12:33:01.654Z"
+  },
+  {
+    "model": "deepseek-r1-0528",
+    "site": "yi",
+    "support": false,
+    "error": "无效的令牌 (request id: 20260303122315882935385rdyTe2ED)",
+    "timestamp": "2026-03-03T12:23:16.077Z"
+  },
+  {
+    "model": "claude-sonnet-4-6-thinking-count",
+    "site": "xqtd520qidong",
+    "support": true,
+    "timestamp": "2026-03-02T19:28:53.671Z"
+  },
+  {
+    "model": "claude-opus-4-6",
+    "site": "xqtd520qidong",
+    "support": true,
+    "timestamp": "2026-03-02T19:21:18.341Z"
+  },
+  {
+    "model": "claude-sonnet-4.5-count",
+    "site": "xqtd520qidong",
+    "support": true,
+    "timestamp": "2026-03-02T19:06:00.299Z"
+  },
+  {
+    "model": "glm-5",
+    "site": "xqtd520qidong",
+    "support": true,
+    "timestamp": "2026-03-02T18:56:51.591Z"
+  }
+]

@@ -1,0 +1,15 @@
+{
+  "sites": {
+    "custom_1772814447134": {
+      "name": "api.bywlai.cn-2",
+      "openaiUrl": "https://api.bywlai.cn/v1/chat/completions",
+      "anthropicUrl": "https://api.bywlai.cn/v1/messages"
+    }
+  },
+  "customSites": [],
+  "keys": {
+    "yi": "sk-6oNkm25KghVSVR1JElmENoQKEGNQqTTE9FAEUDAOHldPKcFV",
+    "custom_1772813078824": "sk-6oNkm25KghVSVR1JElmENoQKEGNQqTTE9FAEUDAOHldPKcFV",
+    "custom_1772814447134": "sk-6oNkm25KghVSVR1JElmENoQKEGNQqTTE9FAEUDAOHldPKcFV"
+  }
+}

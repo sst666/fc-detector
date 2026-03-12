@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>模型 Function Calling 检测工具</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; min-height: 100vh; padding: 20px; }
+    .container { max-width: 1000px; margin: 0 auto; }
+    h1 { text-align: center; color: #333; margin-bottom: 30px; }
+    h2 { font-size: 18px; margin-bottom: 16px; }
+    .card { background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 20px; }
+    .form-row { display: flex; gap: 12px; margin-bottom: 16px; }
+    .form-row > * { flex: 1; }
+    .form-group { margin-bottom: 16px; }
+    label { display: block; margin-bottom: 6px; font-weight: 500; color: #555; }
+    input, select { width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; }
+    input:focus, select:focus { outline: none; border-color: #4a90d9; }
+    .btn { background: #4a90d9; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-size: 14px; cursor: pointer; }
+    .btn:hover { background: #357abd; }
+    .btn:disabled { background: #ccc; cursor: not-allowed; }
+    .btn-secondary { background: #6c757d; }
+    .btn-secondary:hover { background: #5a6268; }
+    .btn-danger { background: #dc3545; }
+    .btn-danger:hover { background: #c82333; }
+    .btn-success { background: #28a745; }
+    .btn-success:hover { background: #218838; }
+    .btn-small { padding: 6px 12px; font-size: 12px; }
+    .btn-xs { padding: 4px 8px; font-size: 11px; }
+    .result { padding: 12px; border-radius: 8px; margin-top: 16px; display: none; }
+    .result.success { background: #d4edda; color: #155724; }
+    .result.error { background: #f8d7da; color: #721c24; }
+    table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+    th, td { padding: 10px; text-align: left; border-bottom: 1px solid #eee; }
+    th { background: #f8f9fa; font-weight: 600; }
+    .badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; }
+    .badge.yes { background: #28a745; color: white; }
+    .badge.no { background: #dc3545; color: white; }
+    .badge.key { background: #28a745; color: white; }
+    .badge.no-key { background: #ffc107; color: #333; }
+    .empty { text-align: center; color: #999; padding: 20px; }
+    .model-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+    .model-tag { background: #e9ecef; padding: 4px 10px; border-radius: 16px; font-size: 13px; display: flex; align-items: center; gap: 6px; }
+    .model-tag .delete { cursor: pointer; color: #dc3545; font-weight: bold; }
+    .header-row { display: flex; justify-content: space-between; align-items: center; }
+    .tabs { display: flex; border-bottom: 2px solid #eee; margin-bottom: 20px; }
+    .tab { padding: 10px 20px; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; }
+    .tab.active { border-bottom-color: #4a90d9; color: #4a90d9; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    .site-list { max-height: 400px; overflow-y: auto; }
+    .site-item { display: flex; align-items: center; padding: 12px; border-bottom: 1px solid #eee; }
+    .site-item:last-child { border-bottom: none; }
+    .site-info { flex: 1; }
+    .site-name { font-weight: 500; }
+    .site-url { font-size: 12px; color: #666; }
+    .site-actions { display: flex; gap: 8px; }
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; }
+    .modal.show { display: flex; align-items: center; justify-content: center; }
+    .modal-content { background: white; padding: 24px; border-radius: 12px; width: 90%; max-width: 450px; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .modal-close { background: none; border: none; font-size: 24px; cursor: pointer; }
+    .form-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .record-actions { text-align: right; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🤖 模型 Function Calling 检测工具</h1>
+    
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab('test')">🔍 测试</div>
+      <div class="tab" onclick="switchTab('sites')">⚙️ API站点管理</div>
+      <div class="tab" onclick="switchTab('models')">📋 已保存模型</div>
+    </div>
+    
+    <!-- Test Tab -->
+    <div id="tab-test" class="tab-content active">
+      <div class="card">
+        <div class="form-group">
+          <label>选择模型或输入新模型</label>
+          <div class="form-row">
+            <select id="savedModels">
+              <option value="">-- 选择已保存的模型 --</option>
+            </select>
+            <input type="text" id="modelName" placeholder="例如: gpt-4, claude-3-opus, qwen3" />
+          </div>
+        </div>
+        
+        <div class="form-2col">
+          <div class="form-group">
+            <label>API 站点</label>
+            <select id="apiSite">
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label>调用方式</label>
+            <select id="apiType">
+              <option value="openai">OpenAI 兼容 (/chat/completions)</option>
+              <option value="anthropic">Anthropic 兼容 (/v1/messages)</option>
+            </select>
+          </div>
+        </div>
+        
+        <div id="keyWarning" class="result error" style="display: none;">
+          ⚠️ 该站点尚未设置 API Key，请先在"API站点管理"中配置
+        </div>
+        
+        <button class="btn" id="testBtn" onclick="testFunctionCalling()">测试 Function Calling</button>
+        <div id="result" class="result"></div>
+      </div>
+      
+      <!-- 检测记录直接放在测试页面下方 -->
+      <div class="card">
+        <div class="header-row">
+          <h2>📊 检测记录</h2>
+          <button class="btn btn-danger btn-small" onclick="clearResults()">清除记录</button>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>时间</th>
+              <th>模型</th>
+              <th>调用方式</th>
+              <th>站点</th>
+              <th>支持FC</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="resultsBody">
+          </tbody>
+        </table>
+        <div id="emptyMsg" class="empty">暂无检测记录</div>
+      </div>
+    </div>
+    
+    <!-- Sites Management Tab -->
+    <div id="tab-sites" class="tab-content">
+      <div class="card">
+        <div class="header-row">
+          <h2>API 站点管理</h2>
+          <button class="btn btn-success" onclick="showAddSiteModal()">+ 添加站点</button>
+        </div>
+        <div class="site-list" id="siteList"></div>
+      </div>
+    </div>
+    
+    <!-- Saved Models Tab -->
+    <div id="tab-models" class="tab-content">
+      <div class="card">
+        <div class="header-row">
+          <h2>已保存模型</h2>
+        </div>
+        <div class="form-row">
+          <input type="text" id="newModelName" placeholder="输入模型名称添加" />
+          <button class="btn btn-secondary" onclick="addModel()">添加模型</button>
+        </div>
+        <div class="model-tags" id="modelTags"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Site Modal -->
+  <div id="addSiteModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>添加 API 站点</h3>
+        <button class="modal-close" onclick="closeAddSiteModal()">&times;</button>
+      </div>
+      <div class="form-group">
+        <label>站点名称</label>
+        <input type="text" id="newSiteName" placeholder="例如: api.bywlai.cn" />
+      </div>
+      <div class="form-group">
+        <label>API 基础地址</label>
+        <input type="text" id="newSiteBaseUrl" placeholder="例如: https://api.bywlai.cn" />
+        <small style="color: #666; font-size: 12px;">只需填写基础地址，后缀会自动补充</small>
+      </div>
+      <button class="btn btn-success" onclick="addSite()" style="width: 100%;">添加站点</button>
+    </div>
+  </div>
+
+  <!-- Set Key Modal -->
+  <div id="setKeyModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>设置 API Key</h3>
+        <button class="modal-close" onclick="closeSetKeyModal()">&times;</button>
+      </div>
+      <input type="hidden" id="setKeySiteId" />
+      <div class="form-group">
+        <label>站点</label>
+        <input type="text" id="setKeySiteName" disabled />
+      </div>
+      <div class="form-group">
+        <label>API Key（OpenAI 和 Anthropic 共用）</label>
+        <input type="text" id="setKeyValue" placeholder="sk-xxx" />
+      </div>
+      <button class="btn btn-success" onclick="saveApiKey()" style="width: 100%;">保存</button>
+    </div>
+  </div>
+
+  <script>
+    let sitesData = {};
+    
+    // Tab switching
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+      event.target.classList.add('active');
+      document.getElementById('tab-' + tabId).classList.add('active');
+    }
+    
+    // Load sites
+    async function loadSites() {
+      try {
+        const res = await fetch('/api/sites');
+        sitesData = await res.json();
+        
+        const select = document.getElementById('apiSite');
+        select.innerHTML = '';
+        
+        for (const [id, site] of Object.entries(sitesData)) {
+          const opt = document.createElement('option');
+          opt.value = id;
+          opt.textContent = `${site.name} ${site.hasKey ? '✅' : '⚠️'}`;
+          select.appendChild(opt);
+        }
+        
+        updateKeyWarning();
+        loadSiteList();
+      } catch (e) {
+        console.error('Failed to load sites:', e);
+      }
+    }
+    
+    function updateKeyWarning() {
+      const siteId = document.getElementById('apiSite').value;
+      const warning = document.getElementById('keyWarning');
+      const testBtn = document.getElementById('testBtn');
+      
+      if (siteId && sitesData[siteId] && !sitesData[siteId].hasKey) {
+        warning.style.display = 'block';
+        testBtn.disabled = true;
+      } else {
+        warning.style.display = 'none';
+        testBtn.disabled = false;
+      }
+    }
+    
+    document.getElementById('apiSite').addEventListener('change', updateKeyWarning);
+    
+    // Load site list for management
+    function loadSiteList() {
+      const list = document.getElementById('siteList');
+      let html = '';
+      
+      for (const [id, site] of Object.entries(sitesData)) {
+        html += `
+          <div class="site-item">
+            <div class="site-info">
+              <div class="site-name">${site.name} <span class="badge ${site.hasKey ? 'key' : 'no-key'}">${site.hasKey ? '已配置Key' : '未配置Key'}</span></div>
+            </div>
+            <div class="site-actions">
+              <button class="btn btn-small btn-secondary" onclick="showSetKeyModal('${id}')">${site.hasKey ? '修改Key' : '设置Key'}</button>
+              ${id.startsWith('custom_') ? `<button class="btn btn-small btn-danger" onclick="deleteSite('${id}')">删除</button>` : ''}
+            </div>
+          </div>
+        `;
+      }
+      
+      list.innerHTML = html || '<div class="empty">暂无站点</div>';
+    }
+    
+    // Add site modal
+    function showAddSiteModal() {
+      document.getElementById('addSiteModal').classList.add('show');
+    }
+    
+    function closeAddSiteModal() {
+      document.getElementById('addSiteModal').classList.remove('show');
+    }
+    
+    async function addSite() {
+      const name = document.getElementById('newSiteName').value.trim();
+      const baseUrl = document.getElementById('newSiteBaseUrl').value.trim();
+      
+      if (!name || !baseUrl) {
+        alert('请填写站点名称和API地址');
+        return;
+      }
+      
+      try {
+        await fetch('/api/sites', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, baseUrl })
+        });
+        
+        closeAddSiteModal();
+        document.getElementById('newSiteName').value = '';
+        document.getElementById('newSiteBaseUrl').value = '';
+        loadSites();
+      } catch (e) {
+        console.error('Failed to add site:', e);
+      }
+    }
+    
+    // Set API key modal
+    function showSetKeyModal(siteId) {
+      document.getElementById('setKeySiteId').value = siteId;
+      document.getElementById('setKeySiteName').value = sitesData[siteId].name;
+      document.getElementById('setKeyValue').value = '';
+      document.getElementById('setKeyModal').classList.add('show');
+    }
+    
+    function closeSetKeyModal() {
+      document.getElementById('setKeyModal').classList.remove('show');
+    }
+    
+    async function saveApiKey() {
+      const siteId = document.getElementById('setKeySiteId').value;
+      const key = document.getElementById('setKeyValue').value.trim();
+      
+      if (!key) {
+        alert('请输入 API Key');
+        return;
+      }
+      
+      try {
+        await fetch('/api/sites/key', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ siteId, key })
+        });
+        
+        closeSetKeyModal();
+        loadSites();
+      } catch (e) {
+        console.error('Failed to save key:', e);
+      }
+    }
+    
+    // Delete site
+    async function deleteSite(siteId) {
+      if (!confirm('确定要删除这个站点吗？')) return;
+      
+      try {
+        await fetch('/api/sites', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ siteId })
+        });
+        loadSites();
+      } catch (e) {
+        console.error('Failed to delete site:', e);
+      }
+    }
+    
+    // Load saved models
+    async function loadModels() {
+      try {
+        const res = await fetch('/api/models');
+        const models = await res.json();
+        
+        const select = document.getElementById('savedModels');
+        select.innerHTML = '<option value="">-- 选择已保存的模型 --</option>';
+        models.forEach(m => {
+          const opt = document.createElement('option');
+          opt.value = m;
+          opt.textContent = m;
+          select.appendChild(opt);
+        });
+        
+        const tagsDiv = document.getElementById('modelTags');
+        tagsDiv.innerHTML = models.map(m => `
+          <span class="model-tag">
+            ${m}
+            <span class="delete" onclick="deleteModel('${m}')">×</span>
+          </span>
+        `).join('');
+      } catch (e) {
+        console.error('Failed to load models:', e);
+      }
+    }
+    
+    document.getElementById('savedModels').addEventListener('change', function() {
+      if (this.value) document.getElementById('modelName').value = this.value;
+    });
+    
+    document.getElementById('modelName').addEventListener('input', function() {
+      document.getElementById('savedModels').value = '';
+    });
+    
+    async function addModel() {
+      const name = document.getElementById('newModelName').value.trim();
+      if (!name) return;
+      
+      await fetch('/api/models', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name })
+      });
+      document.getElementById('newModelName').value = '';
+      loadModels();
+    }
+    
+    async function deleteModel(name) {
+      await fetch('/api/models', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name })
+      });
+      loadModels();
+    }
+    
+    // Test function calling
+    async function testFunctionCalling() {
+      const model = document.getElementById('modelName').value.trim();
+      const siteId = document.getElementById('apiSite').value;
+      const apiType = document.getElementById('apiType').value;
+      const btn = document.getElementById('testBtn');
+      const resultDiv = document.getElementById('result');
+      
+      if (!model) {
+        resultDiv.className = 'result error';
+        resultDiv.style.display = 'block';
+        resultDiv.textContent = '请输入或选择模型名称';
+        return;
+      }
+      
+      btn.disabled = true;
+      btn.textContent = '测试中...';
+      resultDiv.style.display = 'none';
+      
+      try {
+        const res = await fetch('/api/test', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ model, siteId, apiType })
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+          resultDiv.className = 'result success';
+          resultDiv.innerHTML = data.support 
+            ? '✅ <strong>支持</strong> Function Calling' 
+            : '❌ <strong>不支持</strong> Function Calling';
+        } else {
+          resultDiv.className = 'result error';
+          resultDiv.innerHTML = `❌ 测试失败: ${data.error}`;
+        }
+        resultDiv.style.display = 'block';
+        
+        loadResults();
+      } catch (e) {
+        resultDiv.className = 'result error';
+        resultDiv.textContent = '请求失败: ' + e.message;
+        resultDiv.style.display = 'block';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '测试 Function Calling';
+      }
+    }
+    
+    // Load results
+    async function loadResults() {
+      try {
+        const res = await fetch('/api/results');
+        const results = await res.json();
+        
+        const tbody = document.getElementById('resultsBody');
+        const emptyMsg = document.getElementById('emptyMsg');
+        
+        if (results.length === 0) {
+          tbody.innerHTML = '';
+          emptyMsg.style.display = 'block';
+          return;
+        }
+        
+        emptyMsg.style.display = 'none';
+        tbody.innerHTML = results.map(r => `
+          <tr>
+            <td>${new Date(r.timestamp).toLocaleString('zh-CN')}</td>
+            <td>${r.model}</td>
+            <td>${r.apiType === 'anthropic' ? 'Anthropic' : 'OpenAI'}</td>
+            <td>${r.siteName || r.siteId}</td>
+            <td><span class="badge ${r.support ? 'yes' : 'no'}">${r.support ? '✅ 支持' : '❌ 不支持'}</span></td>
+            <td class="record-actions">
+              <button class="btn btn-xs btn-danger" onclick="deleteResult('${r.model}', '${r.siteId}', '${r.timestamp}')">×</button>
+            </td>
+          </tr>
+        `).join('');
+      } catch (e) {
+        console.error('Failed to load results:', e);
+      }
+    }
+    
+    async function clearResults() {
+      if (!confirm('确定要清除所有检测记录吗？')) return;
+      await fetch('/api/clear-results', { method: 'POST' });
+      loadResults();
+    }
+    
+    async function deleteResult(model, siteId, timestamp) {
+      await fetch('/api/results', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model, siteId, timestamp })
+      });
+      loadResults();
+    }
+    
+    // Initialize
+    loadSites();
+    loadModels();
+    loadResults();
+  </script>
+</body>
+</html>
