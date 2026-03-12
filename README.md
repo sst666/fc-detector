@@ -15,9 +15,7 @@
 |------|------|
 | ✅ 推荐 | https://api.bywlai.cn |
 | 132006 | https://api.132006.xyz |
-| GPTGod | https://new.gptgod.cloud |
-| 启东 | https://api.xqtd520qidong.com |
-| MiniMax | https://api.minimaxi.com |
+
 
 ## 部署教程
 
